@@ -23,6 +23,7 @@ function saveTracked() {
 async function getCharacterLevel(server, name) {
   try {
     const url = `https://classicwowarmory.com/character/us/${server}/${name}`;
+    console.log(`Fetching character data from: ${url}`); // Log the URL being fetched
     const res = await axios.get(url, {
       headers: {
         "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -50,6 +51,8 @@ async function getCharacterLevel(server, name) {
       return null;
     }
 
+    console.log(`Found level for ${name} on ${server}: ${level}`); // Log the extracted level
+
     // Extract race and class
     const race = $(".extra span:nth-child(2)").text().trim(); // "Orc"
     const characterClass = $(".extra span.class-colors").text().trim(); // "Hunter"
@@ -59,9 +62,10 @@ async function getCharacterLevel(server, name) {
       return null;
     }
 
+    console.log(`Fetched data for ${name}: Level ${level}, Race ${race}, Class ${characterClass}`);
     return { level, race, characterClass };
   } catch (err) {
-    console.error("Error fetching character:", err);
+    console.error(`Error fetching character data for ${name} on ${server}:`, err);
     return null;
   }
 }
