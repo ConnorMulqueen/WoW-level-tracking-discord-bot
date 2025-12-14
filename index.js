@@ -31,6 +31,8 @@ async function getCharacterLevel(server, name) {
         "Expires": "0",
       },
     });
+    console.log(`Response status: ${res.status}`);
+    console.log(`Response data: ${res.data}`);
     const $ = cheerio.load(res.data);
 
     // Find any text that contains "Level"
