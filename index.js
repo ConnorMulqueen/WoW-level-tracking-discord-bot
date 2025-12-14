@@ -23,7 +23,13 @@ function saveTracked() {
 async function getCharacterLevel(server, name) {
   try {
     const url = `https://classicwowarmory.com/character/us/${server}/${name}`;
-    const res = await axios.get(url);
+    const res = await axios.get(url, {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
     const $ = cheerio.load(res.data);
 
     // Find any text that contains "Level"
