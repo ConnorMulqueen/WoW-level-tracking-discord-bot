@@ -32,7 +32,7 @@ async function getCharacterLevel(server, name) {
       },
     });
     console.log(`Response status: ${res.status}`);
-    console.log(`Response data: ${res.data}`);
+    // console.log(`Response data: ${res.data}`);
     const $ = cheerio.load(res.data);
 
     // Find any text that contains "Level"
@@ -384,7 +384,8 @@ async function runHourlyCheck() {
       continue;
     }
 
-    if (newLevel > entry.lastLevel) {
+    console.log("new level", newLevel.level, "last level", entry.lastLevel);
+    if (newLevel.level > entry.lastLevel) {
       console.log(`Level up detected for ${entry.name}: ${entry.lastLevel} → ${newLevel}`);
       const channel = await client.channels.fetch(entry.channelId);
 
@@ -392,7 +393,7 @@ async function runHourlyCheck() {
         .setTitle(`🎉 Level Up!`)
         .setColor(0xffa500) // Orange color for the embed
         .setDescription(
-          `🔥 **${entry.name}** leveled up! **${entry.lastLevel} → ${newLevel}**\n` +
+          `🔥 **${entry.name}** leveled up! **${entry.lastLevel} → ${newLevel.level}**\n` +
           `• **Race:** ${entry.race}\n` +
           `• **Class:** ${entry.characterClass}`
         )
@@ -402,7 +403,7 @@ async function runHourlyCheck() {
 
       channel.send({ embeds: [embed] });
 
-      entry.lastLevel = newLevel;
+      entry.lastLevel = newLevel.level;
       entry.lastChecked = new Date().toISOString();
       saveTracked();
     } else {
