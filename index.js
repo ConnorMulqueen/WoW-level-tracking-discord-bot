@@ -396,50 +396,56 @@ cron.schedule("*/10 * * * *", async () => {
 });
 
 async function runHourlyCheck() {
-  console.log("Running WoW level check...");
+  console.log(`[${new Date().toISOString()}] Starting WoW level check...`);
 
-  for (const key in tracked) {
-    const entry = tracked[key];
-    console.log(`Checking character: ${entry.name} on ${entry.server}`);
+  try {
+    for (const key in tracked) {
+      const entry = tracked[key];
+      console.log(`[${new Date().toISOString()}] Checking character: ${entry.name} on ${entry.server}`);
 
-    const characterData = await getCharacterData(entry.server, entry.name);
+      const characterData = await getCharacterData(entry.server, entry.name);
 
-    if (characterData === null) {
-      console.log(`Failed to fetch data for ${entry.name}. Skipping.`);
-      continue;
+      if (characterData === null) {
+        console.log(`[${new Date().toISOString()}] Failed to fetch data for ${entry.name}. Skipping.`);
+        continue;
+      }
+
+      const { level: newLevel, equippedItemLevel } = characterData;
+
+      if (newLevel > entry.lastLevel) {
+        console.log(`[${new Date().toISOString()}] Level up detected for ${entry.name}: ${entry.lastLevel} → ${newLevel}`);
+        const channel = await client.channels.fetch(entry.channelId);
+
+        const embed = new EmbedBuilder()
+          .setTitle(`🎉 Level Up!`)
+          .setColor(0xffa500) // Orange color for the embed
+          .setDescription(
+            `🔥 **${entry.name}** leveled up! **${entry.lastLevel} → ${newLevel}**\n` +
+            `• **Race:** ${entry.race}\n` +
+            `• **Class:** ${entry.characterClass}\n` +
+            `• **Equipped Item Level:** ${equippedItemLevel}`
+          )
+          .setThumbnail(getImageForRace(entry.race))
+          .setImage(getImageForClass(entry.characterClass))
+          .setFooter({ text: "Keep up the grind!" });
+
+        await channel.send({ embeds: [embed] });
+
+        // Update the tracked data
+        entry.lastLevel = newLevel;
+        entry.equippedItemLevel = equippedItemLevel; // Update the equipped item level
+        entry.lastChecked = new Date().toISOString();
+        saveTracked();
+      } else {
+        console.log(`[${new Date().toISOString()}] No level up for ${entry.name}.`);
+        entry.lastChecked = new Date().toISOString();
+        saveTracked();
+      }
     }
 
-    const { level: newLevel, equippedItemLevel } = characterData;
-
-    if (newLevel > entry.lastLevel) {
-      console.log(`Level up detected for ${entry.name}: ${entry.lastLevel} → ${newLevel}`);
-      const channel = await client.channels.fetch(entry.channelId);
-
-      const embed = new EmbedBuilder()
-        .setTitle(`🎉 Level Up!`)
-        .setColor(0xffa500) // Orange color for the embed
-        .setDescription(
-          `🔥 **${entry.name}** leveled up! **${entry.lastLevel} → ${newLevel}**\n` +
-          `• **Race:** ${entry.race}\n` +
-          `• **Class:** ${entry.characterClass}\n` +
-          `• **Equipped Item Level:** ${equippedItemLevel}`
-        )
-        .setThumbnail(getImageForRace(entry.race))
-        .setImage(getImageForClass(entry.characterClass))
-        .setFooter({ text: "Keep up the grind!" });
-
-      channel.send({ embeds: [embed] });
-
-      // Update the tracked data
-      entry.lastLevel = newLevel;
-      entry.equippedItemLevel = equippedItemLevel; // Update the equipped item level
-      entry.lastChecked = new Date().toISOString();
-      saveTracked();
-    } else {
-      console.log(`No level up for ${entry.name}.`);
-      entry.lastChecked = new Date().toISOString();
-      saveTracked();
-    }
+    console.log(`[${new Date().toISOString()}] Finished WoW level check.`);
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] An error occurred during the WoW level check:`, err);
   }
 }
 
