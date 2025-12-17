@@ -383,12 +383,6 @@ client.on("messageCreate", async (msg) => {
   }
 });
 
-// Cron job: runs every hour on the hour
-cron.schedule("0 * * * *", async () => {
-  console.log("Running hourly WoW level check...");
-  await runHourlyCheck();
-});
-
 // Cron job: runs every 10 minutes
 cron.schedule("*/10 * * * *", async () => {
   console.log("Running WoW level check every 10 minutes...");
